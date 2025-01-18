@@ -1,0 +1,11 @@
+[package]
+name = "advent_of_code_2024"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+grid = "0.15.0"
+ndarray = "0.16.1"
+regex = "1.11.1"
+strum = "0.26.3"
+strum_macros = "0.26.4"
