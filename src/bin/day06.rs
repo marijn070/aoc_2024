@@ -11,27 +11,61 @@ fn main() {
 
     let mut suitmaplab = SuitLabMap::from_str(&input).unwrap();
 
+    // fill up the history
     loop {
         let finished = suitmaplab.step();
-        if finished {
+        if finished == GuardStatus::Finished {
             break;
         }
     }
 
     let answer_a = suitmaplab.get_n_guard_positions();
     println!("the guard has visited {answer_a} unique positions");
-    dbg!(suitmaplab.get_annotated_map());
 
-    // for part b we need to obstruct the guard somewhere to make
-    // him walk in a loop.
-    //   1. where do we check?
-    //   2. how do we know a loop has been made?
-    //
-    // for the first quesiton, I think that we should only check all or the
-    // locations in the guards unobstructed path history, as those will ensure
-    // a collision.
-    // for the second question, we can see if the guard revisits a point facing the same direction again, meaning that it has reached a loop.
-    // Therefore, we must also record the direction the guard had in each point.
+    // for part b we need to obstruct the guard
+    // we loop through all unique positions in the "normal" history, except the first one
+    // and place an extra obstacle there.
+    // Then we step and see if we find a loop
+
+    let mut obstacle_placement_locations = suitmaplab
+        .guard_history
+        .clone()
+        .iter()
+        .map(|&(row, col, _)| (row, col))
+        .collect::<HashSet<_>>();
+
+    obstacle_placement_locations.remove(&suitmaplab.guard_starting_position);
+    let mut loop_obstacle_locations: Vec<(usize, usize)> = vec![];
+
+    for (row, col) in obstacle_placement_locations.iter() {
+        let mut fresh_suitmaplab = SuitLabMap::from_str(&input).unwrap();
+        fresh_suitmaplab.add_obstacle(*row, *col);
+        loop {
+            let step_result = fresh_suitmaplab.step();
+            match step_result {
+                GuardStatus::Loop => {
+                    loop_obstacle_locations.push((*row, *col));
+                    break;
+                }
+                GuardStatus::Finished => {
+                    break;
+                }
+                GuardStatus::Normal => continue,
+            }
+        }
+    }
+
+    println!(
+        "Found {} unique obstacle placement locations",
+        loop_obstacle_locations.len()
+    );
+}
+
+#[derive(Debug, PartialEq)]
+enum GuardStatus {
+    Finished,
+    Loop,
+    Normal,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -42,44 +76,29 @@ enum Orientation {
     Left,
 }
 
-impl Orientation {
-    fn step_direction(&self) -> (isize, isize) {
-        use Orientation::*;
-        match self {
-            Up => (-1, 0),
-            Right => (0, 1),
-            Down => (1, 0),
-            Left => (0, -1),
-        }
-    }
-
-    fn rotate_right(&mut self) -> Orientation {
-        use Orientation::*;
-        match self {
-            Up => Right,
-            Right => Down,
-            Down => Left,
-            Left => Up,
-        }
-    }
-}
-
 #[derive(Debug)]
 struct SuitLabMap {
+    guard_starting_position: (usize, usize),
     guard_position: (usize, usize),
     guard_orientation: Orientation,
     map: grid::Grid<char>,
-    guard_history: Vec<(usize, usize)>,
-    guard_unique_position_orientation_history: HashSet<(usize, usize, Orientation)>,
+    // guard_history: Vec<(usize, usize)>,
+    guard_history: HashSet<(usize, usize, Orientation)>,
 }
 
 impl SuitLabMap {
+    fn add_obstacle(&mut self, row: usize, col: usize) {
+        if let Some(cell) = self.map.get_mut(row, col) {
+            *cell = '#';
+        }
+    }
+
     fn get_n_guard_positions(&self) -> usize {
         self.guard_history
             .iter()
+            .map(|&(row, col, _)| (row, col))
             .collect::<HashSet<_>>()
-            .into_iter()
-            .count()
+            .len()
     }
 
     fn get_annotated_map(&self) -> Grid<char> {
@@ -87,14 +106,18 @@ impl SuitLabMap {
 
         // annotate the places the guard has been with an X
         for (index, value) in map.indexed_iter_mut() {
-            if self.guard_history.contains(&index) {
+            if self
+                .guard_history
+                .iter()
+                .any(|&(col, row, _)| col == index.0 && row == index.1)
+            {
                 *value = 'X';
             }
         }
         map
     }
 
-    fn step(&mut self) -> bool {
+    fn step(&mut self) -> GuardStatus {
         let mut next_position = self.guard_position;
 
         let (dr, dc) = self.guard_orientation.step_direction();
@@ -107,7 +130,7 @@ impl SuitLabMap {
             || new_row as usize >= self.map.rows()
             || new_col as usize >= self.map.cols()
         {
-            return true;
+            return GuardStatus::Finished;
         }
 
         next_position.0 = new_row as usize;
@@ -116,20 +139,24 @@ impl SuitLabMap {
         match self.map.get(next_position.0, next_position.1) {
             Some('.') => {
                 self.guard_position = next_position;
-                self.guard_history.push(next_position);
+                if self.guard_history.insert((
+                    next_position.0,
+                    next_position.1,
+                    self.guard_orientation,
+                )) {
+                    return GuardStatus::Normal;
+                } else {
+                    return GuardStatus::Loop;
+                }
             }
             Some('#') => {
                 self.guard_orientation = self.guard_orientation.rotate_right();
-                println!(
-                    "the guard encountered an obstacle, and is now facing {:?}",
-                    self.guard_orientation
-                );
+                return GuardStatus::Normal;
             }
             _ => {
                 panic!("Unexpected character in the map");
             }
         }
-        false
     }
 }
 
@@ -164,11 +191,15 @@ impl FromStr for SuitLabMap {
                 Orientation::Up,
             ));
             Ok(SuitLabMap {
+                guard_starting_position: position,
                 guard_position: position,
                 guard_orientation: Orientation::Up,
                 map,
-                guard_history: vec![position],
-                guard_unique_position_orientation_history,
+                guard_history: {
+                    let mut set = HashSet::new();
+                    set.insert((position.0, position.1, Orientation::Up));
+                    set
+                },
             })
         } else {
             Err(SuitLabMapError::GuardNotFound)
@@ -192,3 +223,25 @@ impl fmt::Display for SuitLabMapError {
 }
 
 impl Error for SuitLabMapError {}
+
+impl Orientation {
+    fn step_direction(&self) -> (isize, isize) {
+        use Orientation::*;
+        match self {
+            Up => (-1, 0),
+            Right => (0, 1),
+            Down => (1, 0),
+            Left => (0, -1),
+        }
+    }
+
+    fn rotate_right(&mut self) -> Orientation {
+        use Orientation::*;
+        match self {
+            Up => Right,
+            Right => Down,
+            Down => Left,
+            Left => Up,
+        }
+    }
+}
