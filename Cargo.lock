@@ -6,6 +6,7 @@ version = 3
 name = "advent_of_code_2024"
 version = "0.1.0"
 dependencies = [
+ "bet",
  "grid",
  "ndarray",
  "regex",
@@ -27,6 +28,12 @@ name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
+
+[[package]]
+name = "bet"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a33cd5a98377df6ecfedff9c018c1c1ea92c730c4baf9173cfe0d7c3df20ab6"
 
 [[package]]
 name = "grid"

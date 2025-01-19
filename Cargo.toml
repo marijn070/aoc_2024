@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bet = "1.0.4"
 grid = "0.15.0"
 ndarray = "0.16.1"
 regex = "1.11.1"
