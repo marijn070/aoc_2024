@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use advent_of_code_2024::file_reader;
 
@@ -30,37 +30,47 @@ fn main() {
 }
 
 fn get_total_calibration_result(bridge_equations: &[BridgeEquation], concat_included: bool) -> u64 {
+    let mut memo = HashMap::new();
     bridge_equations
         .iter()
         .filter(|bridge_equation| {
             let possibilities =
-                get_equation_possibilities(&bridge_equation.equation, concat_included);
+                get_equation_possibilities(&bridge_equation.equation, concat_included, &mut memo);
             possibilities.contains(&bridge_equation.test_value)
         })
         .map(|bridge_equation| bridge_equation.test_value)
         .sum()
 }
 
-fn get_equation_possibilities(equation: &[u64], concat_included: bool) -> HashSet<u64> {
+fn get_equation_possibilities(
+    equation: &[u64],
+    concat_included: bool,
+    memo: &mut HashMap<Vec<u64>, HashSet<u64>>,
+) -> HashSet<u64> {
+    if let Some(cached) = memo.get(equation) {
+        return cached.clone();
+    }
+
     let mut possibilities = HashSet::new();
 
     if equation.len() == 1 {
         possibilities.insert(equation[0]);
-        return possibilities;
+    } else {
+        let last_value = equation.last().copied().unwrap();
+        let remaining_equation = &equation[..equation.len() - 1];
+        let previous_possibilities =
+            get_equation_possibilities(remaining_equation, concat_included, memo);
+
+        for possibility in previous_possibilities {
+            possibilities.insert(possibility * last_value);
+            possibilities.insert(possibility + last_value);
+            if concat_included {
+                possibilities.insert(concat_operator(possibility, last_value));
+            }
+        }
     }
 
-    let last_value = equation.last().copied().unwrap();
-    let remaining_equation = &equation[..equation.len() - 1];
-    let previous_possibilities = get_equation_possibilities(remaining_equation, concat_included);
-
-    for possibility in previous_possibilities {
-        possibilities.insert(possibility * last_value);
-        possibilities.insert(possibility + last_value);
-        if concat_included {
-            possibilities.insert(concat_operator(possibility, last_value));
-        };
-    }
-
+    memo.insert(equation.to_vec(), possibilities.clone());
     possibilities
 }
 
