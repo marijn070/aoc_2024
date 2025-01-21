@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 bet = "1.0.4"
 grid = "0.15.0"
+itertools = "0.14.0"
 ndarray = "0.16.1"
 regex = "1.11.1"
 strum = "0.26.3"
