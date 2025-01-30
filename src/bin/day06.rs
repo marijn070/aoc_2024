@@ -104,6 +104,7 @@ impl SuitLabMap {
             .len()
     }
 
+    #[allow(dead_code)]
     fn get_annotated_map(&self) -> Grid<char> {
         let mut map = self.map.clone();
 
