@@ -28,7 +28,7 @@ impl FromStr for ReportGrid {
 }
 
 impl ReportGrid {
-    fn check_report_safety(report: &Vec<i32>) -> bool {
+    fn check_report_safety(report: &[i32]) -> bool {
         if report.len() < 2 {
             return false;
         }
@@ -62,9 +62,9 @@ impl ReportGrid {
             .count()
     }
 
-    fn problem_damper(report: &Vec<i32>) -> bool {
+    fn problem_damper(report: &[i32]) -> bool {
         for i in 0..report.len() {
-            let mut damped_report = report.clone();
+            let mut damped_report = report.to_owned();
             damped_report.remove(i);
 
             if ReportGrid::check_report_safety(&damped_report) {
@@ -82,8 +82,8 @@ impl ReportGrid {
         let n_problem_damper_reports = self
             .grid
             .iter()
-            .filter(|report| !ReportGrid::check_report_safety(*report))
-            .filter(|report| ReportGrid::problem_damper(&report))
+            .filter(|report| !ReportGrid::check_report_safety(report))
+            .filter(|report| ReportGrid::problem_damper(report))
             .count();
 
         n_problem_damper_reports

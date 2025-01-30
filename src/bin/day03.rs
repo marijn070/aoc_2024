@@ -47,9 +47,7 @@ impl FromStr for TobogganComputer {
                 ));
             }
         }
-        Ok(TobogganComputer {
-            instructions: instructions,
-        })
+        Ok(TobogganComputer { instructions })
     }
 }
 

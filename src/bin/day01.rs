@@ -36,13 +36,13 @@ fn get_lists(data_string: String) -> (Vec<u32>, Vec<u32>) {
         })
 }
 
-fn get_total_difference(list1: &Vec<u32>, list2: &Vec<u32>) -> Result<u32, &'static str> {
+fn get_total_difference(list1: &[u32], list2: &[u32]) -> Result<u32, &'static str> {
     if list1.len() != list2.len() {
         return Err("Lists must be the same length");
     }
 
-    let mut first: Vec<u32> = list1.clone();
-    let mut second: Vec<u32> = list2.clone();
+    let mut first: Vec<u32> = list1.to_owned();
+    let mut second: Vec<u32> = list2.to_owned();
 
     first.sort_unstable();
     second.sort_unstable();
@@ -56,7 +56,7 @@ fn get_total_difference(list1: &Vec<u32>, list2: &Vec<u32>) -> Result<u32, &'sta
     Ok(difference)
 }
 
-fn get_similarity_score(left: &Vec<u32>, right: &Vec<u32>) -> u32 {
+fn get_similarity_score(left: &[u32], right: &[u32]) -> u32 {
     // we need to iterate over the elements in the left list,
     // looking up the amount of times they appear in the right list
     // Will sorting the list make this faster? I guess we can calculate a table

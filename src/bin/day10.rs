@@ -27,18 +27,15 @@ fn main() {
         })
         .collect();
 
-    let m = map_grid.len();
-    let n = map_grid[0].len();
-
     let mut trailheads: Vec<(usize, usize)> = vec![];
 
-    for i in 0..m {
-        for j in 0..n {
-            if map_grid[i][j] == 0 {
-                trailheads.push((i, j))
+    map_grid.iter().enumerate().for_each(|(i, row)| {
+        row.iter().enumerate().for_each(|(j, &element)| {
+            if element == 0 {
+                trailheads.push((i, j));
             }
-        }
-    }
+        });
+    });
 
     let mut trailhead_ends = vec![];
 
@@ -69,7 +66,7 @@ fn find_trail_ends(map: &Vec<Vec<u8>>, coords: (usize, usize)) -> HashSet<(usize
     // check adjacent spots and add children
     for adjacent_spot in get_adjacent_coords_in_bounds(coords, map_size) {
         if map[adjacent_spot.0][adjacent_spot.1] == current_height + 1 {
-            for trail_end in find_trail_ends(&map, adjacent_spot) {
+            for trail_end in find_trail_ends(map, adjacent_spot) {
                 trail_ends.insert(trail_end);
             }
         }

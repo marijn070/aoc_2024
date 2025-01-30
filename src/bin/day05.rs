@@ -79,7 +79,7 @@ fn sum_middle_page_numbers(page_sequences: &[Vec<u32>]) -> u32 {
 }
 
 fn check_page_sequence(
-    sequence: &Vec<u32>,
+    sequence: &[u32],
     before_rules: &HashMap<u32, Vec<u32>>,
     after_rules: &HashMap<u32, Vec<u32>>,
 ) -> bool {
@@ -108,7 +108,7 @@ fn correct_page_sequence(
     let mut corrected_sequence: Vec<u32> = vec![];
 
     while corrected_sequence.len() < sequence.len()
-        || !check_page_sequence(&corrected_sequence, &before_rules, &after_rules)
+        || !check_page_sequence(&corrected_sequence, before_rules, after_rules)
     {
         // loop through the sequence, and see if one of the pages
         // has zero of the other pages coming after it.

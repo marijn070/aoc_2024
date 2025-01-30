@@ -32,7 +32,7 @@ fn main() {
         match disk[left_idx] {
             Some(id) => answer_a += id as u64 * left_idx as u64,
             None => {
-                while let None = disk[right_idx] {
+                while disk[right_idx].is_none() {
                     right_idx -= 1;
                 }
                 if let Some(id) = disk[right_idx] {
@@ -69,7 +69,7 @@ fn main() {
         }
 
         let block_size: u32 = diskmap[block_nr];
-        let mut block_start_idx = default_block_start_idx.clone();
+        let mut block_start_idx = default_block_start_idx;
         let block_id: u64 = block_nr as u64 / 2;
 
         if let Some(fs_idx) = free_space_diskmap[..block_nr]

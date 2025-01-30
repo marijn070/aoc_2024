@@ -47,7 +47,7 @@ fn search_in_directions(grid: &Grid<char>, start: (usize, usize), word: &str) ->
     let mut matches_found = 0;
 
     for &(dr, dc) in &DIRECTIONS {
-        let mut cursor = start.clone();
+        let mut cursor = start;
         let mut match_found = true;
 
         for char in word.chars() {

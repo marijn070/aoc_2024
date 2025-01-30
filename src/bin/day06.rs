@@ -147,14 +147,14 @@ impl SuitLabMap {
                     next_position.1,
                     self.guard_orientation,
                 )) {
-                    return GuardStatus::Normal;
+                    GuardStatus::Normal
                 } else {
-                    return GuardStatus::Loop;
+                    GuardStatus::Loop
                 }
             }
             Some('#') => {
                 self.guard_orientation = self.guard_orientation.rotate_right();
-                return GuardStatus::Normal;
+                GuardStatus::Normal
             }
             _ => {
                 panic!("Unexpected character in the map");

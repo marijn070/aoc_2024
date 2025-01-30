@@ -82,7 +82,7 @@ impl WordSearch {
                 }
             }
         }
-        return n_occurrences_word;
+        n_occurrences_word
     }
 
     fn problem_b(&mut self) -> Result<u32, &str> {
@@ -124,15 +124,11 @@ impl WordSearch {
             return false;
         }
 
-        if coords.0 <= 0
-            || coords.0 >= self.grid.len() - 1
-            || coords.1 <= 0
-            || coords.1 >= self.grid[0].len() - 1
-        {
+        if coords.0 >= self.grid.len() - 1 || coords.1 >= self.grid[0].len() - 1 {
             return false;
         }
 
-        let corner_coordinates = vec![
+        let corner_coordinates = [
             (coords.0 - 1, coords.1 - 1),
             (coords.0 - 1, coords.1 + 1),
             (coords.0 + 1, coords.1 + 1),
@@ -179,7 +175,7 @@ impl WordSearch {
         let mut cursor = (coords.0 as isize, coords.1 as isize);
         let mut positions = vec![];
 
-        for (_i, word_char) in self.word.chars().enumerate() {
+        for word_char in self.word.chars() {
             // see if the word character is matched
             if cursor.0 < 0
                 || cursor.1 < 0
