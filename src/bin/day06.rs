@@ -7,7 +7,10 @@ use advent_of_code_2024::file_reader;
 use grid::*;
 
 fn main() {
-    let input = file_reader::get_input("src/inputs/input_day06.txt");
+    let input = file_reader::get_input(&format!(
+        "{}/src/inputs/input_day06.txt",
+        env!("CARGO_MANIFEST_DIR")
+    ));
 
     let mut suitmaplab = SuitLabMap::from_str(&input).unwrap();
 
