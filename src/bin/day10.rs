@@ -1,20 +1,9 @@
 use advent_of_code_2024::file_reader;
 use std::collections::HashSet;
 
-// we need to find the number of hiking paths for each trailhead
-// 1. find all the trailhead locations
-// 2. initiate a tree for each trailhead (so each point along a path can have multiple child trails)
-//      Probably nice to define our own tree? each node will have a height and an array of children
-// 3. figure out early stopping (so in the get_child_trails function we return false if there are +1 slope paths)
-//      - for all neighbors where the hight is one higher, add a child node
-//      - if we find child trails, append them to the children of the current node and run that function on its children
-//      - if we dont find child trails, return from the function
-// 4. at the end, count the number of child nodes for each trail head
-//      This can be done with a counter and a recursive function (maybe)
-
 fn main() {
     let input = file_reader::get_input(&format!(
-        "{}/src/inputs/input_day10.txt",
+        "{}/src/inputs/test_day10.txt",
         env!("CARGO_MANIFEST_DIR")
     ));
 
@@ -40,8 +29,10 @@ fn main() {
     let mut trailhead_ends = vec![];
 
     for &trailhead in trailheads.iter() {
-        trailhead_ends.push(find_trail_ends(&map_grid, trailhead))
+        trailhead_ends.push(find_unique_trail_ends(&map_grid, trailhead))
     }
+
+    let answer_a = trailhead_ends.iter().fold(0, |acc, x| acc + x.len());
 
     println!(
         "the trailheads have scores of {:?}, making for a total score of {}",
@@ -49,11 +40,69 @@ fn main() {
             .iter()
             .map(|x| x.len())
             .collect::<Vec<usize>>(),
-        trailhead_ends.iter().fold(0, |acc, x| acc + x.len())
+        answer_a
     );
+
+    let mut trailhead_paths = vec![];
+
+    for &trailhead in trailheads.iter() {
+        let path: Vec<(usize, usize)> = vec![trailhead];
+        let mut paths = HashSet::new();
+        paths.insert(path);
+        trailhead_paths.push(find_unique_trails(&map_grid, paths, trailhead))
+    }
+
+    let answer_b = trailhead_paths.iter().fold(0, |acc, x| acc + x.len());
+
+    println!(
+        "the trailheads have scores of {:?}, making for a total score of {}",
+        trailhead_paths
+            .iter()
+            .map(|x| x.len())
+            .collect::<Vec<usize>>(),
+        answer_b
+    );
+
+    // we can also get answer a from the paths
+    // let answer_a: usize = trailhead_paths
+    //     .iter()
+    //     .map(|h| h.iter().map(|l| l.last()).unique().count()) // count how many unique endpoints each set of trails has
+    //     .sum();
 }
 
-fn find_trail_ends(map: &Vec<Vec<u8>>, coords: (usize, usize)) -> HashSet<(usize, usize)> {
+fn find_unique_trails(
+    map: &Vec<Vec<u8>>,
+    paths: HashSet<Vec<(usize, usize)>>,
+    coords: (usize, usize),
+) -> HashSet<Vec<(usize, usize)>> {
+    let map_size = (map.len(), map[0].len());
+    let current_height = map[coords.0][coords.1];
+
+    let paths_till_here: HashSet<Vec<(usize, usize)>> = paths
+        .iter()
+        .map(|path| {
+            let mut new_path = path.clone();
+            new_path.push(coords);
+            new_path
+        })
+        .collect();
+    if current_height == 9 {
+        return paths_till_here;
+    }
+
+    let mut updated_paths: HashSet<Vec<(usize, usize)>> = HashSet::new();
+
+    for adjacent_spot in get_adjacent_coords_in_bounds(coords, map_size) {
+        if map[adjacent_spot.0][adjacent_spot.1] == current_height + 1 {
+            for paths in find_unique_trails(map, paths_till_here.clone(), adjacent_spot) {
+                updated_paths.insert(paths);
+            }
+        }
+    }
+    updated_paths
+}
+
+fn find_unique_trail_ends(map: &Vec<Vec<u8>>, coords: (usize, usize)) -> HashSet<(usize, usize)> {
     let map_size = (map.len(), map[0].len());
     let current_height = map[coords.0][coords.1];
     let mut trail_ends = HashSet::new();
@@ -66,7 +115,7 @@ fn find_trail_ends(map: &Vec<Vec<u8>>, coords: (usize, usize)) -> HashSet<(usize
     // check adjacent spots and add children
     for adjacent_spot in get_adjacent_coords_in_bounds(coords, map_size) {
         if map[adjacent_spot.0][adjacent_spot.1] == current_height + 1 {
-            for trail_end in find_trail_ends(map, adjacent_spot) {
+            for trail_end in find_unique_trail_ends(map, adjacent_spot) {
                 trail_ends.insert(trail_end);
             }
         }
