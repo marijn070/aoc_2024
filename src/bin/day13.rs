@@ -1,15 +1,5 @@
 use advent_of_code_2024::file_reader;
-use nom::{
-    self,
-    branch::alt,
-    bytes::{complete::tag, take_while},
-    character::{
-        complete::{i32, line_ending, space1},
-        one_of,
-    },
-    sequence::{preceded, separated_pair, terminated},
-    AsChar, IResult, Parser,
-};
+use regex::Regex;
 
 const A_BUTTON_COST: i32 = 3;
 const B_BUTTON_COST: i32 = 1;
@@ -19,24 +9,24 @@ fn main() {
     let input = file_reader::get_input("src/inputs/test_day13.txt");
     println!("{input}");
 
-    // i will be putting the values into an array
-    // [xa, ya, xb, yb, x_prize, y_prize]
+    let machines: Vec<GrabMachine> = input
+        .split("\n\n")
+        .map(|s| {
+            let re = Regex::new(r"\d+").unwrap();
+            let coords: Vec<i32> = re
+                .captures_iter(s)
+                .map(|c| c[0].parse::<i32>().unwrap())
+                .take(6)
+                .collect();
+            GrabMachine {
+                a: (coords[0], coords[1]),
+                b: (coords[2], coords[3]),
+                prize: (coords[4], coords[5]),
+            }
+        })
+        .collect();
 
-    let xa = 17;
-    let ya = 86;
-    let xb = 84;
-    let yb = 37;
-
-    let x_prize = 7870;
-    let y_prize = 6450;
-
-    let presses_a = -(xb * y_prize - yb * x_prize) / (xa * yb - ya * xb);
-    let presses_b = -(ya * x_prize - xa * y_prize) / (xa * yb - ya * xb);
-
-    println!("we need to press button A {presses_a} times");
-    println!("we need to press button B {presses_b} times");
-
-    println!("{grab_machine("Button A: X+30, Y+13"):?}");
+    println!("{machines:?}");
 }
 
 #[derive(Debug)]
@@ -59,40 +49,4 @@ impl GrabMachine {
             0
         }
     }
-}
-
-fn grab_machine(input: &str) -> IResult<&str, GrabMachine> {
-    // first implement the basic parsers
-    let x_val = preceded(
-        alt((tag("X+"), tag("X="))),
-        take_while(AsChar::is_dec_digit),
-    )
-    .map_res(|s: &str| s.parse::<i32>());
-
-    let y_val = preceded(
-        alt((tag("Y+"), tag("Y="))),
-        take_while(AsChar::is_dec_digit),
-    )
-    .map_res(|s: &str| s.parse::<i32>());
-
-    let button_a = tag("Button A: ");
-    let button_b = tag("Button B: ");
-    let prize = tag("Prize: ");
-
-    let separator = (tag(","), space1);
-
-    let thing = 0;
-
-    let (input, (_, x_a, _, y_a)) = (button_a, x_val, &separator, y_val).parse(input)?;
-    let (input, (_, x_b, _, y_b)) = (button_b, x_val, separator, y_val).parse(input)?;
-    let (input, (_, x_prize, _, y_prize)) = (prize, x_val, separator, y_val).parse(input)?;
-
-    Ok((
-        input,
-        GrabMachine {
-            a: (x_a, y_a),
-            b: (x_b, y_b),
-            prize: (x_prize, y_prize),
-        },
-    ))
 }
