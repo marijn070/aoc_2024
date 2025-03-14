@@ -81,6 +81,8 @@ fn grab_machine(input: &str) -> IResult<&str, GrabMachine> {
 
     let separator = (tag(","), space1);
 
+    let thing = 0;
+
     let (input, (_, x_a, _, y_a)) = (button_a, x_val, &separator, y_val).parse(input)?;
     let (input, (_, x_b, _, y_b)) = (button_b, x_val, separator, y_val).parse(input)?;
     let (input, (_, x_prize, _, y_prize)) = (prize, x_val, separator, y_val).parse(input)?;
