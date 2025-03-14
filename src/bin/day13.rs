@@ -6,8 +6,7 @@ const B_BUTTON_COST: i32 = 1;
 const MAX_BUTTON_PRESSES: u8 = 100;
 
 fn main() {
-    let input = file_reader::get_input("src/inputs/test_day13.txt");
-    println!("{input}");
+    let input = file_reader::get_input("src/inputs/input_day13.txt");
 
     let machines: Vec<GrabMachine> = input
         .split("\n\n")
@@ -26,7 +25,10 @@ fn main() {
         })
         .collect();
 
-    println!("{machines:?}");
+    let machine_tokens: Vec<i32> = machines.iter().map(|m| m.calculate_grab_tokens()).collect();
+    let answer_a: i32 = machine_tokens.iter().sum();
+
+    println!("The answer to part a is {answer_a:?}")
 }
 
 #[derive(Debug)]
@@ -43,7 +45,7 @@ impl GrabMachine {
         let presses_b = -(self.a.1 * self.prize.0 - self.a.0 * self.prize.1)
             / (self.a.0 * self.b.1 - self.a.1 * self.b.0);
 
-        if presses_a <= 100 || presses_b <= 100 {
+        if presses_a <= 100 && presses_b <= 100 {
             A_BUTTON_COST * presses_a + B_BUTTON_COST * presses_b
         } else {
             0
